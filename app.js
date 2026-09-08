@@ -7,7 +7,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:5174",
-      "https://handcricket3720.netlify.app/",
+      "https://handcricket3720.netlify.app",
     ],
     credentials: true,
   })
