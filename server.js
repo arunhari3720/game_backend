@@ -1,19 +1,22 @@
 require("dotenv").config();
+
 const connectdb = require("./src/config/dbconfig");
-const app =require('./app')
+const app = require("./app");
 
-const startserver = async()=>
-{
-    try{
-         await connectdb();
-         console.log("db connected");
+const startServer = async () => {
+  try {
+    await connectdb();
+    console.log("DB connected");
 
-         app.listen(process.env.PORT||8500,()=>{
-            console.log(`port running in:${process.env.PORT||8500}` )
-        });
-       }
-        catch(error){
-            console.log(`port not  connected:${error.message}`);
-         }
-         };
-module.exports= startserver();
+    const PORT = process.env.PORT || 8500;
+
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error(`Server not connected: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+startServer();
