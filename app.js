@@ -11,7 +11,7 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    console.log("Request Origin:", origin);
+    //console.log("Request Origin:", origin);
 
     // Allow server-to-server / Postman requests without Origin
     if (!origin) {
@@ -58,7 +58,7 @@ const userrouter = require("./src/routes/userroutes");
 app.use("/api/user", userrouter);
 
 const roomrouter = require("./src/routes/room");
-app.use("/api/rooms", roomrouter);
+app.use("/api", roomrouter);
 
 console.log("app is touched");
 

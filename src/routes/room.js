@@ -1,78 +1,76 @@
-const express = require("express");
-
+// routes/roomRoutes.js
+const express = require('express');
 const router = express.Router();
+const roomController = require('../controller/room');
 
-const {
-  createRoom,
-  getRoom,
-  pickSlot,
-  toggleReady,
-  startGame,
-  playHandCricket,
-  playXo,
-  resetXo,
-  disconnectPlayer,
-} = require("../controller/room");
+// Logging middleware for debugging
+// router.use((req, res, next) => {
+//   console.log(`[${req.method}] ${req.originalUrl}`);
+//   next();
+// });
 
-// ─────────────────────────────────────────────
-// Create a room
-// POST /api/rooms
-// Body: { hostName }
-// ─────────────────────────────────────────────
-router.post("/", createRoom);
+// ============ ROOM MANAGEMENT ============
 
-// ─────────────────────────────────────────────
-// Get room by code
-// GET /api/rooms/:code
-// ─────────────────────────────────────────────
-router.get("/:code", getRoom);
+// Create a new room
+router.post('/rooms', roomController.createRoom);
 
-// ─────────────────────────────────────────────
-// Pick / switch player slot
-// POST /api/rooms/:code/slot
-// Body: { name, slot }
-// ─────────────────────────────────────────────
-router.post("/:code/slot", pickSlot);
+// Get room details
+router.get('/rooms/:code', roomController.getRoom);
 
-// ─────────────────────────────────────────────
+// Delete room (cleanup)
+router.delete('/rooms/:code', roomController.deleteRoom);
+
+// ============ PLAYER MANAGEMENT ============
+
+// Pick a slot in the room
+router.post('/rooms/:code/slot', roomController.pickSlot);
+
 // Toggle player ready status
-// POST /api/rooms/:code/ready
-// Body: { name }
-// ─────────────────────────────────────────────
-router.post("/:code/ready", toggleReady);
+router.post('/rooms/:code/ready', roomController.toggleReady);
 
-// ─────────────────────────────────────────────
-// Start game
-// POST /api/rooms/:code/start
-// Body: { gameType: "handcricket" | "xo" }
-// ─────────────────────────────────────────────
-router.post("/:code/start", startGame);
-
-// ─────────────────────────────────────────────
-// Hand Cricket move
-// POST /api/rooms/:code/hc/play
-// Body: { name, choice }
-// ─────────────────────────────────────────────
-router.post("/:code/hc/play", playHandCricket);
-
-// ─────────────────────────────────────────────
-// XO move
-// POST /api/rooms/:code/xo/play
-// Body: { name, idx }
-// ─────────────────────────────────────────────
-router.post("/:code/xo/play", playXo);
-
-// ─────────────────────────────────────────────
-// Reset XO board
-// POST /api/rooms/:code/xo/reset
-// ─────────────────────────────────────────────
-router.post("/:code/xo/reset", resetXo);
-
-// ─────────────────────────────────────────────
 // Disconnect player
-// POST /api/rooms/:code/disconnect
-// Body: { name }
-// ─────────────────────────────────────────────
-router.post("/:code/disconnect", disconnectPlayer);
+router.post('/rooms/:code/disconnect', roomController.disconnectPlayer);
+
+// ============ GAME MANAGEMENT ============
+
+// Start game (handcricket or xo)
+router.post('/rooms/:code/start', roomController.startGame);
+
+// ============ TOSS SYSTEM (Hand Cricket Only) ============
+
+// Challenge opponent for toss
+router.post('/rooms/:code/toss/challenge', roomController.tossChallenge);
+
+// Make toss call (heads or tails)
+router.post('/rooms/:code/toss/call', roomController.tossCall);
+
+// Choose bat or bowl after winning toss
+router.post('/rooms/:code/toss/decision', roomController.tossDecision);
+
+// Get toss status (optional - can use getRoom)
+router.get('/rooms/:code/toss/status', roomController.getTossStatus);
+
+// ============ HAND CRICKET GAMEPLAY ============
+
+// Play hand cricket (make a choice 1-6)
+router.post('/rooms/:code/handcricket/play', roomController.playHandCricket);
+
+// ============ XO GAMEPLAY ============
+
+// Play XO (make a move)
+router.post('/rooms/:code/xo/play', roomController.playXo);
+
+// Reset XO board
+router.post('/rooms/:code/xo/reset', roomController.resetXo);
+
+// Catch-all route for debugging
+router.use((req, res) => {
+  console.log(`❌ Route not found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ 
+    error: 'Route not found', 
+    path: req.originalUrl,
+    method: req.method 
+  });
+});
 
 module.exports = router;

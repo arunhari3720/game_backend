@@ -1,112 +1,264 @@
+// models/room.js
+
 const mongoose = require("mongoose");
 
 // ─────────────────────────────────────────────
 // Player Schema
 // ─────────────────────────────────────────────
-const playerSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-  },
 
-  slot: {
-    type: Number,
-    required: true,
-    min: 0,
-    max: 3,
-  },
+const playerSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-  ready: {
-    type: Boolean,
-    default: false,
-  },
+    slot: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 3,
+    },
 
-  connected: {
-    type: Boolean,
-    default: true,
-  },
+    ready: {
+      type: Boolean,
+      default: false,
+    },
 
-  joinedAt: {
-    type: Date,
-    default: Date.now,
+    connected: {
+      type: Boolean,
+      default: true,
+    },
+
+    joinedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-});
+  { _id: false }
+);
+
+// ─────────────────────────────────────────────
+// Toss Schema
+// ─────────────────────────────────────────────
+
+const tossSchema = new mongoose.Schema(
+  {
+    phase: {
+      type: String,
+      enum: ["waiting", "toss", "decision", "completed"],
+      default: "waiting",
+    },
+
+    challenger: {
+      type: Number,
+      default: null,
+    },
+
+    opponent: {
+      type: Number,
+      default: null,
+    },
+
+    winner: {
+      type: Number,
+      default: null,
+    },
+
+    choice: {
+      type: String,
+      enum: ["bat", "bowl", null],
+      default: null,
+    },
+
+    completed: {
+      type: Boolean,
+      default: false,
+    },
+
+    result: {
+      type: String,
+      enum: ["heads", "tails", null],
+      default: null,
+    },
+
+    call: {
+      type: String,
+      enum: ["heads", "tails", null],
+      default: null,
+    },
+  },
+  { _id: false }
+);
 
 // ─────────────────────────────────────────────
 // Hand Cricket Schema
 // ─────────────────────────────────────────────
-const handCricketSchema = new mongoose.Schema({
-  phase: {
-    type: String,
-    enum: ["playing", "result"],
-    default: "playing",
-  },
 
-  currentPlayer: {
-    type: Number,
-    default: 0,
-  },
+const handCricketSchema = new mongoose.Schema(
+  {
+    phase: {
+      type: String,
+      enum: [
+        "waiting",
+        "toss",
+        "decision",
+        "playing",
+        "inningsBreak",
+        "finished",
+        "result",
+      ],
+      default: "waiting",
+    },
 
-  scores: {
-    type: [Number],
-    default: [0, 0, 0, 0],
-  },
+    // Kept for compatibility with existing frontend.
+    // During hand cricket this points to the batsman.
+    currentPlayer: {
+      type: Number,
+      default: 0,
+    },
 
-  isOut: {
-    type: [Boolean],
-    default: [false, false, false, false],
-  },
+    // Current innings score for each player.
+    scores: {
+      type: [Number],
+      default: () => [0, 0, 0, 0],
+    },
 
-  lastChoices: {
-    type: [Number],
-    default: [null, null, null, null],
-  },
+    // Total score across the complete match.
+    totalRuns: {
+      type: [Number],
+      default: () => [0, 0, 0, 0],
+    },
 
-  message: {
-    type: String,
-    default: "Game started!",
-  },
+    // Score made during each innings.
+    inningsScores: {
+      type: [Number],
+      default: () => [0, 0, 0, 0],
+    },
 
-  round: {
-    type: Number,
-    default: 1,
-  },
+    isOut: {
+      type: [Boolean],
+      default: () => [false, false, false, false],
+    },
 
-  maxRounds: {
-    type: Number,
-    default: 10,
+    lastChoices: {
+      type: [Number],
+      default: () => [null, null, null, null],
+    },
+
+    // IMPORTANT:
+    // Stores both players' submitted choices for current round.
+    pendingChoices: {
+      type: [Number],
+      default: () => [null, null, null, null],
+    },
+
+    message: {
+      type: String,
+      default: "Waiting to start",
+    },
+
+    round: {
+      type: Number,
+      default: 0,
+    },
+
+    // Number of completed rounds in current innings.
+    inningsRound: {
+      type: Number,
+      default: 0,
+    },
+
+    maxRounds: {
+      type: Number,
+      default: 10,
+    },
+
+    batting: {
+      type: Number,
+      default: null,
+    },
+
+    bowling: {
+      type: Number,
+      default: null,
+    },
+
+    innings: {
+      type: Number,
+      default: 1,
+    },
+
+    // Second innings target.
+    target: {
+      type: Number,
+      default: null,
+    },
+
+    // First innings score preserved here.
+    firstInningsScore: {
+      type: Number,
+      default: 0,
+    },
+
+    wickets: {
+      type: [Number],
+      default: () => [0, 0, 0, 0],
+    },
+
+    balls: {
+      type: [Number],
+      default: () => [0, 0, 0, 0],
+    },
+
+    winner: {
+      type: Number,
+      default: null,
+    },
+
+    // Draw indicator.
+    draw: {
+      type: Boolean,
+      default: false,
+    },
   },
-});
+  { _id: false }
+);
 
 // ─────────────────────────────────────────────
 // XO Game Schema
 // ─────────────────────────────────────────────
-const xoGameSchema = new mongoose.Schema({
-  board: {
-    type: [String],
-    default: () => Array(16).fill(null),
-  },
 
-  turn: {
-    type: Number,
-    default: 0,
-  },
+const xoGameSchema = new mongoose.Schema(
+  {
+    board: {
+      type: [String],
+      default: () => Array(16).fill(null),
+    },
 
-  winner: {
-    type: String,
-    default: null,
-  },
+    turn: {
+      type: Number,
+      default: 0,
+    },
 
-  winningLine: {
-    type: [Number],
-    default: () => [],
+    winner: {
+      type: String,
+      default: null,
+    },
+
+    winningLine: {
+      type: [Number],
+      default: () => [],
+    },
   },
-});
+  { _id: false }
+);
 
 // ─────────────────────────────────────────────
 // Room Schema
 // ─────────────────────────────────────────────
+
 const roomSchema = new mongoose.Schema({
   code: {
     type: String,
@@ -124,7 +276,16 @@ const roomSchema = new mongoose.Schema({
 
   players: {
     type: [playerSchema],
-    default: [null, null, null, null],
+
+    validate: {
+      validator: function (v) {
+        return v.length === 4;
+      },
+
+      message: "Players array must have exactly 4 slots",
+    },
+
+    default: () => [null, null, null, null],
   },
 
   status: {
@@ -137,6 +298,11 @@ const roomSchema = new mongoose.Schema({
     type: String,
     enum: ["handcricket", "xo", null],
     default: null,
+  },
+
+  toss: {
+    type: tossSchema,
+    default: () => ({}),
   },
 
   hc: {
@@ -161,30 +327,35 @@ const roomSchema = new mongoose.Schema({
 });
 
 // ─────────────────────────────────────────────
-// Update timestamp before save
+// Update timestamp
 // ─────────────────────────────────────────────
+
 roomSchema.pre("save", function () {
-  this.updatedAt = Date.now();
+  this.updatedAt = new Date();
 });
 
 // ─────────────────────────────────────────────
 // Generate unique room code
 // ─────────────────────────────────────────────
+
 roomSchema.statics.generateRoomCode = function () {
-  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const characters =
+    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
   let code = "";
 
   for (let i = 0; i < 6; i++) {
     code += characters.charAt(
-      Math.floor(Math.random() * characters.length)
+      Math.floor(
+        Math.random() * characters.length
+      )
     );
   }
 
   return code;
 };
 
-// ─────────────────────────────────────────────
-// Export Model
-// ─────────────────────────────────────────────
-module.exports = mongoose.model("Room", roomSchema);
+module.exports = mongoose.model(
+  "Room",
+  roomSchema
+);
